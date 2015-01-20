@@ -43,9 +43,19 @@ class MyWebServer(SocketServer.BaseRequestHandler):
 
         if path.endswith('/'):
             path += "index.html"
+        else:
+            temppath = path + "/index.html"
+            try:
+                tempfile = open(temppath)
+                self.request.send("HTTP/1.1 301 Moved Permanently\r\n")
+                self.request.send("Location: " + request[1] + "/\r\n")
+                tempfile.close()
+                return
+            except:
+                pass
 
         try:
-            file = open(path)
+            tfile = open(path)
             self.request.send("HTTP/1.1 200 OK\r\n")
 
             if path.endswith('css'):
@@ -53,8 +63,10 @@ class MyWebServer(SocketServer.BaseRequestHandler):
             elif path.endswith('html'):
                 self.request.send("Content-Type: text/html\r\n\r\n")
 
-            for line in file.readlines():
+            for line in tfile.readlines():
                 self.request.send(line)
+
+            tfile.close()
         except:
             self.request.send("HTTP/1.1 404 Not Found\r\n\r\n")
             self.request.send("404 Not Found")
